@@ -1,0 +1,17 @@
+baseURL = 'http://localhost/'
+languageCode = 'en-us'
+title = 'Philippe Saade'
+theme = 'papermod'
+
+
+[params.homeInfoParams]
+Title = "Hi there 👋"
+Content = "I build AI apps and share guides"
+
+[[params.socialIcons]]
+name = "LinkedIn"
+url = "https://www.linkedin.com/in/philippe-saad%C3%A9-26972b149/"
+
+[[params.socialIcons]]
+name = "GitHub"
+url = "https://github.com/PhilSad"

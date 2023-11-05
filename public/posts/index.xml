@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Posts on My New Hugo Site</title>
+    <link>https:/posts/</link>
+    <description>Recent content in Posts on My New Hugo Site</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 05 Nov 2023 01:05:29 +0100</lastBuildDate><atom:link href="https:/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>My First Post</title>
+      <link>https:/posts/my-first-post/</link>
+      <pubDate>Sun, 05 Nov 2023 01:05:29 +0100</pubDate>
+      
+      <guid>https:/posts/my-first-post/</guid>
+      <description>What can you find on this blog Here I&amp;rsquo;ll share my dev projects and guides about AI, mainly Stable Diffusion &amp;amp; LLM
+This is a default template for now but I&amp;rsquo;ll update it to get more features (traduction, gallery, &amp;hellip;)</description>
+    </item>
+    
+  </channel>
+</rss>
