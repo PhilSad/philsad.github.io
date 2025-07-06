@@ -1,3 +1,10 @@
++++
+title = 'Find Meaningful Directions in an Embedding Space'
+date = 2025-07-06T01:05:29+01:00
+draft = false
++++
+
+
 # Motivation
 Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous "king" - "man" + "woman" = "queen" analogy, but how do we uncover similar relationships in a more systematic unsupervised way? 
 
