@@ -5,7 +5,7 @@ draft = false
 +++
 
 
-Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous "king" - "man" + "woman" = "queen" analogy, but how can we uncover similar relationships in a more systematic, unsupervised way? 
+Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous `"king" - "man" + "woman" = "queen"` analogy, but how can we uncover similar relationships in a more systematic, unsupervised way? 
 
 This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques. 
 
@@ -31,8 +31,8 @@ The idea is to find groups of words that have a similar direction in the embeddi
 Then we can find the direction of the group by calculating the difference between the embeddings of the words and averaging them. This gives us a vector that represents the direction of the group.
 
 We could then use this vector to find other words: 
-- "king"  + vector = "queen"
-- "uncle" + vector = "aunt"
+- `"king"  + vector = "queen"`
+- `"uncle" + vector = "aunt"`
 
 ### What didn't work
 I initially tried to calculate the pairwise difference between all words embeddings and then cluster the resulting vectors. However, this approach was too memory-intensive, requiring around 2TB of RAM to cluster the 6800*6800 pairwise directions.
@@ -244,14 +244,14 @@ The resulting clusters will have most of the clusters with the same words. For e
 
 These elements have a similar direction but they are not relevant for our goal. They capture that "city", "country" and "state" are pretty close to each other in the embedding space, but they don't capture a meaningful direction.
 
-To ensure diverse relationships within a direction cluster, I filtered it to only keep pairs where all the words were unique.
+To ensure diverse relationships within a direction cluster, I filtered it to only keep pairs where **all the words were unique**.
 
-Then I only kept the clusters that have at least 2 pairs so we can do an average direction.
+Then I only kept the clusters that have **at least 2 pairs** so we can do an average direction.
 
 Finally, I define two metrics with their thresholds to filter the clusters:
 
-1. Intra-cluster coherence: This measures how similar the directions in a cluster are to each other.
-2. Word-level coherence: This measures whether the starting and ending words of the pairs form their own coherent groups.
+1. **Intra-cluster coherence**: This measures how similar the directions in a cluster are to each other.
+2. **Word-level coherence**: This measures whether the starting and ending words of the pairs form their own coherent groups.
 
 ```python
 from sklearn.metrics.pairwise import cosine_similarity
