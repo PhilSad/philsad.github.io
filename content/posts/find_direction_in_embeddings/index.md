@@ -6,19 +6,19 @@ draft = false
 
 
 # Motivation
-Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous "king" - "man" + "woman" = "queen" analogy, but how do we uncover similar relationships in a more systematic unsupervised way? 
+Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous "king" - "man" + "woman" = "queen" analogy, but how do we uncover similar relationships in a more systematic, unsupervised way? 
 
 This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques. 
 
 # High-level overview
 
 ## The embedding model
-I need a model that can provide high-quality word embeddings. Being only at the word level, I don't need a model like Bert that provides contextual embeddings. Instead, I can use a pre-trained word embedding model that captures semantic relationships between words.
+I need a model that can provide high-quality word embeddings. Since I'm only working at the word level, I don't need a model like BERT that provides contextual embeddings. Instead, I can use a pre-trained word embedding model that captures semantic relationships between words.
 
 I used the [Google News Word2Vec model](https://code.google.com/archive/p/word2vec/), which is a pre-trained word embedding model trained on a large corpus of news articles. The embedding dimension is 300.
 
 ## The data
-To keep things simple, I only worked with nouns, using [this list](https://raw.githubusercontent.com/lukecheng1998/20-Questions/refs/heads/master/nouns.txt) of 6800 common english nouns and filtered out any words that were not in the embedding model.
+To keep things simple, I only worked with nouns, using [this list](https://raw.githubusercontent.com/lukecheng1998/20-Questions/refs/heads/master/nouns.txt) of 6800 common English nouns and filtered out any words that were not in the embedding model.
 
 ## The method
 ### The idea
@@ -34,12 +34,12 @@ We could then use this vector to find other words:
 - "uncle" + vector = "aunt"
 
 ### What didn't work
-I initially tried to do the pairwise difference between all words embeddings and then cluster the resulting vectors. However, this approach was too memory-intensive, needing around 2TB of RAM to cluster the 6800*6800 pairwise directions.
+I initially tried to calculate the pairwise difference between all words embeddings and then cluster the resulting vectors. However, this approach was too memory-intensive, requiring around 2TB of RAM to cluster the 6800*6800 pairwise directions.
 
 Maybe I could have searched for a more memory-efficient clustering algorithm, but I had another idea that worked much better.
 
 ### What did work
-Instead, I first clustered the words into similar groups, and then did the another clustering on the pairwise differences within each group. This approach was much more memory-efficient and allowed me to find meaningful directions.
+Instead, I first clustered the words into similar groups, and then performed another clustering  on the pairwise differences within each group. This approach was much more memory-efficient and allowed me to find meaningful directions.
 
 After some filtering, I got 90 clusters. I can then use a LLM to interpret the clusters and find their meaning. Some of the clusters are quite interesting! You can find the results at the end of this notebook.
 
@@ -77,7 +77,7 @@ X = PCA(n_components=64).fit_transform(X)
 
 ## Cluster the words using HDBSCAN
 
-To cluster the words, I use HDBSCAN, which is one of the most popular clustering algorithms. I want my clusters to be large enough to contain different concepts: for exemple, I want "car" and "bicycle" to be in the same cluster, despite one having a motor and the other not, they are both vehicles and I could identify a direction from motorized to non-motorized vehicles.
+To cluster the words, I used HDBSCAN, which is one of the most popular clustering algorithms. I want my clusters to be large enough to contain different concepts: for example, I want "car" and "bicycle" to be in the same cluster, despite one having a motor and the other not, they are both vehicles and I could identify a direction from motorized to non-motorized vehicles.
 
 I also want to have a large number of clusters so I can find many different directions.
 
@@ -234,23 +234,23 @@ for cluster_id, data in enhanced_clusters.items():
 
 ## Cluster the directions within each cluster and only keep the relevant ones
 
-Here is the crux. I want to find the clusters of directions within each cluster. So I calculate the pairwise difference between all words in the cluster, and then cluster the resulting vectors using HDBSCAN again.
+This is the crux of the method. I want to find the clusters of directions within each cluster. So I calculated the pairwise difference between all words in the cluster, and then cluster the resulting vectors using HDBSCAN again.
 
-The resulting clusters will have most of the clusters with the same words. For exemple:
+The resulting clusters will have most of the clusters with the same words. For example:
 - "north" > "city"
 - "north" > "country"
 - "north" > "state"
 
 These elements have a similar direction but they are not relevant for our goal. They capture that "city", "country" and "state" are pretty close to each other in the embedding space, but they don't capture a meaningful direction.
 
-So within a cluster, I remove a pair when I see a word that is already in the cluster. 
+To ensure diverse relationships within a direction cluster, I filtered it to only keep pairs where all the words were unique.
 
-Then I only keep the clusters that have at least 2 pairs so we can do an average direction.
+Then I only kept the clusters that have at least 2 pairs so we can do an average direction.
 
-Then I define two metrics with their thresholds to filter the clusters:
+Finally, I define two metrics with their thresholds to filter the clusters:
 
 1. Intra-cluster coherence: This measures how similar the directions in a cluster are to each other.
-2. Word-level coherence: This measures if the starting and ending words of the pairs form their own coherent groups.
+2. Word-level coherence: This measures whether the starting and ending words of the pairs form their own coherent groups.
 
 ```python
 from sklearn.metrics.pairwise import cosine_similarity
@@ -404,7 +404,7 @@ for i in tqdm(range(len(enhanced_clusters))):
     100%|██████████| 58/58 [00:01<00:00, 35.18it/s]
 
 
-## Lets test it out!
+## Let's test it out!
 
 Let's take the pairs from the cluster where it goes from one gender to another.
 
@@ -469,13 +469,13 @@ wv.similar_by_word(word)
      ('grandmother', 0.7483130097389221)]
 
 
-The results are quite different! We correctly identified a direction vector in the embedding space that captures the relationship female to male!
+The results are quite different! We correctly identified a direction vector in the embedding space that captures the female-to-male relationship!
 
 
 
 ## Attributing a meaning to the clusters
 
-Finally, I can use a LLM to interpret the clusters and find their meaning. I will use Google Gemini API to do that.
+Finally, I used a LLM to interpret the clusters and find their meaning. I will use Google Gemini API to do that.
 
 ```python
 from dotenv import load_dotenv, find_dotenv
@@ -803,8 +803,8 @@ wv.similar_by_word(word)
 
 # Final thoughts
 
-* In the tests, often the most similar word is the original word itself, I think this is because when I do the clustering I look at the cosine distance. It tells the direction of the vector, but not its magnitude. That's why by adding the mean vector to the original word, I go towards the direction of the cluster, but I don't know how far to go.
+* In the tests, often the most similar word is the original word itself, I think this is because when I performed the clustering, I looked at the cosine distance. It tells the direction of the vector, but not its magnitude. Therefore, when adding the mean vector to the original word, I move in the direction of the cluster, but the magnitude of that move isn't controlled.
 
-* Word2Vec is a pretty old model (2013), and I could try with a more recent model like GloVe. Maybe Bert or other transformer-based models would also work.
+* Word2Vec is a relatively old model (2013), and it would be interesting to try this with a more recent model like GloVe. Maybe BERT or other transformer-based models would also work.
 
-* I could try to find a more memory-efficient way to do the pairwise difference and clustering between all words embeddings
+* I could explore more memory-efficient methods for calculating and clustering the pairwise differences across the entire vocabulary.
