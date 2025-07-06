@@ -5,10 +5,11 @@ draft = false
 +++
 
 
-# Motivation
 Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous "king" - "man" + "woman" = "queen" analogy, but how can we uncover similar relationships in a more systematic, unsupervised way? 
 
 This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques. 
+
+You can find all the directions I found [in the results json](https://github.com/PhilSad/latent-directions/blob/main/all_relevant_clusters_with_meaning.json).
 
 # High-level overview
 
