@@ -555,7 +555,7 @@ with open("all_relevant_clusters_with_meaning.json", "w") as f:
 for cluster in all_relevant_clusters_with_meaning:
     print(f"{cluster['meaning']}")
 ```
-
+```text
     Weather phenomenon to natural disaster
     From a specific storm to a related weather phenomenon
     From a negative female archetype to a male archetype
@@ -646,7 +646,7 @@ for cluster in all_relevant_clusters_with_meaning:
     Italian food to non-Italian food
     Vegetable to herb
     herbs to vegetables
-
+```
 ## Let's test a few more clusters
 
 ### From American/European dishes to Italian dishes
