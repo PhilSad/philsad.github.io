@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Find Meaningful Directions in an Embedding Space | Philippe Saade</title>
+<meta name="keywords" content="">
+<meta name="description" content="Motivation
+Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous &ldquo;king&rdquo; - &ldquo;man&rdquo; &#43; &ldquo;woman&rdquo; = &ldquo;queen&rdquo; analogy, but how do we uncover similar relationships in a more systematic unsupervised way?
+This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques.
+High-level overview
+The embedding model
+I need a model that can provide high-quality word embeddings. Being only at the word level, I don&rsquo;t need a model like Bert that provides contextual embeddings. Instead, I can use a pre-trained word embedding model that captures semantic relationships between words.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/find_direction_in_embeddings/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f9f91002fe82ae229ce4b8ec18eafc3a9d22a76ba6da1975bd754e6e4f35999e.css" integrity="sha256-&#43;fkQAv6CriKc5LjsGOr8Op0ip2um2hl1vXVObk81mZ4=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/find_direction_in_embeddings/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Philippe Saade (Alt + H)">Philippe Saade</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <ul class="lang-switch"><li>|</li>
+                </ul>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Find Meaningful Directions in an Embedding Space
+    </h1>
+    <div class="post-meta"><span title='2025-07-06 01:05:29 +0100 +0100'>July 6, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="motivation">Motivation<a hidden class="anchor" aria-hidden="true" href="#motivation">#</a></h1>
+<p>Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous &ldquo;king&rdquo; - &ldquo;man&rdquo; + &ldquo;woman&rdquo; = &ldquo;queen&rdquo; analogy, but how do we uncover similar relationships in a more systematic unsupervised way?</p>
+<p>This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques.</p>
+<h1 id="high-level-overview">High-level overview<a hidden class="anchor" aria-hidden="true" href="#high-level-overview">#</a></h1>
+<h2 id="the-embedding-model">The embedding model<a hidden class="anchor" aria-hidden="true" href="#the-embedding-model">#</a></h2>
+<p>I need a model that can provide high-quality word embeddings. Being only at the word level, I don&rsquo;t need a model like Bert that provides contextual embeddings. Instead, I can use a pre-trained word embedding model that captures semantic relationships between words.</p>
+<p>I used the <a href="https://code.google.com/archive/p/word2vec/">Google News Word2Vec model</a>, which is a pre-trained word embedding model trained on a large corpus of news articles. The embedding dimension is 300.</p>
+<h2 id="the-data">The data<a hidden class="anchor" aria-hidden="true" href="#the-data">#</a></h2>
+<p>To keep things simple, I only worked with nouns, using <a href="https://raw.githubusercontent.com/lukecheng1998/20-Questions/refs/heads/master/nouns.txt">this list</a> of 6800 common english nouns and filtered out any words that were not in the embedding model.</p>
+<h2 id="the-method">The method<a hidden class="anchor" aria-hidden="true" href="#the-method">#</a></h2>
+<h3 id="the-idea">The idea<a hidden class="anchor" aria-hidden="true" href="#the-idea">#</a></h3>
+<p>The idea is to find groups of words that have a similar direction in the embedding space. A group would look like this:</p>
+<ul>
+<li>&ldquo;man&rdquo; &gt; &ldquo;woman&rdquo;</li>
+<li>&ldquo;dad&rdquo; &gt; &ldquo;mom&rdquo;</li>
+<li>&ldquo;brother&rdquo; &gt; &ldquo;sister&rdquo;</li>
+</ul>
+<p>Then we can find the direction of the group by calculating the difference between the embeddings of the words and averaging them. This gives us a vector that represents the direction of the group.</p>
+<p>We could then use this vector to find other words:</p>
+<ul>
+<li>&ldquo;king&rdquo;  + vector = &ldquo;queen&rdquo;</li>
+<li>&ldquo;uncle&rdquo; + vector = &ldquo;aunt&rdquo;</li>
+</ul>
+<h3 id="what-didnt-work">What didn&rsquo;t work<a hidden class="anchor" aria-hidden="true" href="#what-didnt-work">#</a></h3>
+<p>I initially tried to do the pairwise difference between all words embeddings and then cluster the resulting vectors. However, this approach was too memory-intensive, needing around 2TB of RAM to cluster the 6800*6800 pairwise directions.</p>
+<p>Maybe I could have searched for a more memory-efficient clustering algorithm, but I had another idea that worked much better.</p>
+<h3 id="what-did-work">What did work<a hidden class="anchor" aria-hidden="true" href="#what-did-work">#</a></h3>
+<p>Instead, I first clustered the words into similar groups, and then did the another clustering on the pairwise differences within each group. This approach was much more memory-efficient and allowed me to find meaningful directions.</p>
+<p>After some filtering, I got 90 clusters. I can then use a LLM to interpret the clusters and find their meaning. Some of the clusters are quite interesting! You can find the results at the end of this notebook.</p>
+<h1 id="lets-get-started">Let&rsquo;s get started!<a hidden class="anchor" aria-hidden="true" href="#lets-get-started">#</a></h1>
+<h2 id="load-the-data-and-the-model">Load the data and the model<a hidden class="anchor" aria-hidden="true" href="#load-the-data-and-the-model">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> gensim.downloader <span style="color:#66d9ef">as</span> api
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> hdbscan
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tqdm <span style="color:#f92672">import</span> tqdm
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.metrics.pairwise <span style="color:#f92672">import</span> cosine_similarity
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>wv <span style="color:#f92672">=</span> api<span style="color:#f92672">.</span>load(<span style="color:#e6db74">&#39;word2vec-google-news-300&#39;</span>)
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># do dbscan clustering with wv similarity distance</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;./nounlist.txt&#34;</span>, <span style="color:#e6db74">&#34;r&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>    all_words <span style="color:#f92672">=</span> f<span style="color:#f92672">.</span>read()<span style="color:#f92672">.</span>splitlines()
+</span></span><span style="display:flex;"><span>all_words <span style="color:#f92672">=</span> [word <span style="color:#66d9ef">for</span> word <span style="color:#f92672">in</span> all_words <span style="color:#66d9ef">if</span> word <span style="color:#f92672">in</span> wv]
+</span></span></code></pre></div><h2 id="reduce-the-dimensionality-of-the-embeddings-cf-the-curse-of-dimensionality">Reduce the dimensionality of the embeddings (cf: the curse of dimensionality)<a hidden class="anchor" aria-hidden="true" href="#reduce-the-dimensionality-of-the-embeddings-cf-the-curse-of-dimensionality">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.decomposition <span style="color:#f92672">import</span> PCA, IncrementalPCA
+</span></span><span style="display:flex;"><span>X <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>array([wv[word] <span style="color:#66d9ef">for</span> word <span style="color:#f92672">in</span> all_words])
+</span></span><span style="display:flex;"><span>X <span style="color:#f92672">=</span> PCA(n_components<span style="color:#f92672">=</span><span style="color:#ae81ff">64</span>)<span style="color:#f92672">.</span>fit_transform(X)
+</span></span></code></pre></div><h2 id="cluster-the-words-using-hdbscan">Cluster the words using HDBSCAN<a hidden class="anchor" aria-hidden="true" href="#cluster-the-words-using-hdbscan">#</a></h2>
+<p>To cluster the words, I use HDBSCAN, which is one of the most popular clustering algorithms. I want my clusters to be large enough to contain different concepts: for exemple, I want &ldquo;car&rdquo; and &ldquo;bicycle&rdquo; to be in the same cluster, despite one having a motor and the other not, they are both vehicles and I could identify a direction from motorized to non-motorized vehicles.</p>
+<p>I also want to have a large number of clusters so I can find many different directions.</p>
+<p>I tried different parameters, and I found that the following worked well.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>hac <span style="color:#f92672">=</span> hdbscan<span style="color:#f92672">.</span>HDBSCAN(min_cluster_size<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>, metric<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;precomputed&#39;</span>, max_cluster_size<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>, min_samples<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, cluster_selection_method<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;leaf&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Convert similarity to distance</span>
+</span></span><span style="display:flex;"><span>similarity_matrix <span style="color:#f92672">=</span> cosine_similarity(X)
+</span></span><span style="display:flex;"><span>distance_matrix <span style="color:#f92672">=</span> similarity_matrix
+</span></span><span style="display:flex;"><span>distance_matrix <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> distance_matrix  <span style="color:#75715e"># Convert similarity to distance</span>
+</span></span><span style="display:flex;"><span>distance_matrix <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>clip(distance_matrix, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>)  <span style="color:#75715e"># Ensure values are in [0, 1]</span>
+</span></span><span style="display:flex;"><span>distance_matrix <span style="color:#f92672">=</span> distance_matrix<span style="color:#f92672">.</span>astype(np<span style="color:#f92672">.</span>float64)  <span style="color:#75715e"># Convert to float64 for HDBSCAN</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Fit the model</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;Fitting HDBSCAN model...&#34;</span>)
+</span></span><span style="display:flex;"><span>labels <span style="color:#f92672">=</span> hac<span style="color:#f92672">.</span>fit_predict(distance_matrix)
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Print the number of clusters found</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Number of clusters found: </span><span style="color:#e6db74">{</span>len(set(labels)) <span style="color:#f92672">-</span> (<span style="color:#ae81ff">1</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">in</span> labels <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># make the clusters</span>
+</span></span><span style="display:flex;"><span>clusters <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> cluster_id <span style="color:#f92672">in</span> set(labels):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> cluster_id <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">continue</span>  <span style="color:#75715e"># Skip noise points</span>
+</span></span><span style="display:flex;"><span>    cluster_words <span style="color:#f92672">=</span> [all_words[i] <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(all_words)) <span style="color:#66d9ef">if</span> labels[i] <span style="color:#f92672">==</span> cluster_id]
+</span></span><span style="display:flex;"><span>    clusters[cluster_id] <span style="color:#f92672">=</span> cluster_words
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># print the clusters</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> cluster_id, data <span style="color:#f92672">in</span> enhanced_clusters<span style="color:#f92672">.</span>items():
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Cluster </span><span style="color:#e6db74">{</span>cluster_id<span style="color:#e6db74">}</span><span style="color:#e6db74">:&#34;</span>)
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;  Words: </span><span style="color:#e6db74">{</span><span style="color:#e6db74">&#39;, &#39;</span><span style="color:#f92672">.</span>join(data)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span></code></pre></div><pre><code>Cluster 0:
+  Words: TV, broadcast, media, television, video
+Cluster 1:
+  Words: butler, countess, king, princess, queen
+Cluster 2:
+  Words: blizzard, cyclone, earthquake, hurricane, rain, rainstorm, rainy, sleet, snow, snowstorm, storm, thunderstorm, tsunami, typhoon, weather, winter
+Cluster 3:
+  Words: diner, dining, restaurant, waiter, waitress
+Cluster 4:
+  Words: demon, god, hellcat, temptress, thug, vixen
+Cluster 5:
+  Words: blade, gun, hacksaw, handgun, handsaw, knife, mattock, pistol, pliers, rifle, scissors, screwdriver, weeder
+Cluster 6:
+  Words: freight, rail, streetcar, tram, transit, transport, trolley
+Cluster 7:
+  Words: SUV, bus, car, minibus, motorcycle, scooter, taxi, truck, van, vehicle
+Cluster 8:
+  Words: availability, creation, development, expansion, growth, implementation, integration, standardization, transformation, utilization
+Cluster 9:
+  Words: adjective, adverb, comma, hyphenation, neologism, noun, phrase, pronoun, punctuation, semicolon, synonym, verb
+Cluster 10:
+  Words: colonialism, counterterrorism, expansionism, insurrection, military, terror, terrorism, war
+Cluster 11:
+  Words: anesthesiologist, counselor, dentist, doctor, nurse, ophthalmologist, pharmacist, psychiatrist, psychologist, therapist
+Cluster 12:
+  Words: aluminum, coal, copper, gas, hydrocarbon, methane, mining, ore, steel
+Cluster 13:
+  Words: casement, coil, gripper, hexagon, parallelogram, plier, spool, valance
+Cluster 14:
+  Words: aircraft, airplane, helicopter, jet, plane
+Cluster 15:
+  Words: brake, footrest, gearshift, handlebar, headrest
+Cluster 16:
+  Words: abdomen, ankle, bone, chest, chin, clavicle, elbow, eyebrow, finger, forearm, forehead, heel, hip, jaw, knee, leg, neck, nose, pinkie, rib, shin, shoulder, thigh, thumb, toe, toenail, torso, wrist
+Cluster 17:
+  Words: bangle, bracelet, brooch, earring, earrings, figurine, necklace, ornament, pendant, porcelain, vase
+Cluster 18:
+  Words: deodorant, lotion, mascara, shampoo, washcloth
+Cluster 19:
+  Words: bladder, gland, intestine, liver, pancreas
+Cluster 20:
+  Words: area, east, north, south, southeast, west, western
+Cluster 21:
+  Words: armoire, banquette, bookcase, chaise, credenza, daybed, divan, dresser, footstool, futon, mattress, ottoman, recliner, sideboard, sofa
+Cluster 22:
+  Words: carport, lanai, patio, porch, sunroom
+Cluster 23:
+  Words: aunt, baby, boy, boyfriend, brother, cousin, dad, daddy, daughter, family, father, friend, girl, girlfriend, godmother, grandchild, granddaughter, grandfather, grandma, grandmom, grandmother, grandpa, grandson, husband, mama, mom, mother, nephew, niece, papa, roommate, sister, son, stepdaughter, stepmother, stepson, teenager, uncle, widow, wife, woman
+Cluster 24:
+  Words: capitalism, democracy, ideology, socialism, socialist
+Cluster 25:
+  Words: amazement, anger, anguish, anxiety, arrogance, bafflement, commitment, compassion, desire, disappointment, disgust, enthusiasm, exasperation, frustration, generosity, glee, gratitude, grief, hatred, heartache, heterosexual, homosexual, homosexuality, ignorance, joy, outrage, passion, prejudice, racism, regret, religion, reluctance, sadness, sorrow, sympathy, willingness
+Cluster 26:
+  Words: custody, detention, jail, parole, prison, prosecution, sentence, sentencing
+Cluster 27:
+  Words: boolean, browser, charset, desktop, initialize, integer, interface, login, modem, parser, plugin, postfix, router, server, software, subroutine, webmail
+Cluster 28:
+  Words: average, decline, doubling, drop, half, increase, percent, percentage, rate, rise, total
+Cluster 29:
+  Words: afternoon, day, end, fifth, first, last, leading, major, month, morning, night, round, second, set, today, week, weekend, will
+Cluster 30:
+  Words: church, clergyman, nun, pastor, priest
+Cluster 31:
+  Words: company, distributor, industry, market, subsidiary, supplier
+Cluster 32:
+  Words: agreement, decision, legislation, partnership, policy, proposal
+Cluster 33:
+  Words: apartment, basement, bathroom, bedroom, bungalow, chapel, chateau, downstairs, hallway, house, inn, mansion, monastery, palace, room, shrine, temple, townhouse, upstairs, villa
+Cluster 34:
+  Words: debt, lender, lending, mortgage, pension
+Cluster 35:
+  Words: assertion, implication, question, rationale, reason, reasoning, suggestion, theory
+Cluster 36:
+  Words: athlete, athletics, baseball, basketball, boxer, champion, championship, coach, defeat, finisher, football, game, graduate, gymnast, gymnastics, hockey, hurdler, junior, league, runner, soccer, sociology, softball, sprinter, teammate, tennis, volleyball, win
+Cluster 37:
+  Words: anybody, anyone, anything, everybody, going, maybe, nobody, nothing, somebody, thought, want
+Cluster 38:
+  Words: ass, crap, damn, fuck, shit
+Cluster 39:
+  Words: anthropology, biology, mathematics, neurobiologist, science
+Cluster 40:
+  Words: dishwasher, dryer, heater, oven, refrigerator, stove, washer
+Cluster 41:
+  Words: colt, filly, foal, gelding, heifer, mare, stallion
+Cluster 42:
+  Words: expert, professor, researcher, scholar, scientist, technologist
+Cluster 43:
+  Words: administrator, adviser, aide, assistant, attorney, chairman, chairperson, chief, columnist, correspondent, counsel, deputy, director, executive, journalist, lawyer, manager, officer, president, representative, secretary, spokesman, supervisor, vice, writer
+Cluster 44:
+  Words: city, congressman, governor, lawmaker, legislator, mayor, minister, senator
+Cluster 45:
+  Words: basin, canal, creek, estuary, lake, marsh, reservoir, river, shoreline, tributary, wetland
+Cluster 46:
+  Words: barge, boat, canoe, catamaran, causeway, crewmen, dinghy, dory, dredger, ferryboat, freighter, frigate, houseboat, kayak, ketch, motorboat, pier, rowboat, sailboat, sampan, schooner, scow, ship, speedboat, tugboat, vessel, wharf, yacht, yawl
+Cluster 47:
+  Words: blue, orange, pink, purple, red, tangerine, white, yellow
+Cluster 48:
+  Words: ale, beer, brandy, drink, pinot, vodka, whiskey, wine
+Cluster 49:
+  Words: anchovy, blackfish, carp, clam, cod, crab, crayfish, eel, fish, fishery, grouper, hake, halibut, herring, kingfish, lobster, mussel, oyster, salmon, scallops, seabass, seafood, shrimp, sprat, squid, sturgeon, swordfish, trout, tuna
+Cluster 50:
+  Words: beetle, caterpillar, insect, moth, wasp, yellowjacket
+Cluster 51:
+  Words: cat, dog, kitten, mutt, pug, pup, puppy, tabby
+Cluster 52:
+  Words: alligator, anteater, antelope, bird, bobcat, cheetah, cougar, coyote, deer, dolphin, elephant, elk, frog, giraffe, gorilla, heron, lemur, leopard, lizard, lynx, mallard, manatee, moose, opossum, orangutan, osprey, otter, owl, panther, pelican, porpoise, raccoon, rhinoceros, sparrow, squirrel, tiger, toad, tortoise, turtle, whale, wolf
+Cluster 53:
+  Words: begonia, crocus, cyclamen, dahlia, dogwood, flower, foxglove, geranium, lily, orchid, peony, tulip
+Cluster 54:
+  Words: beech, birch, fir, larch, oak, sycamore
+Cluster 55:
+  Words: corn, maize, rice, sorghum, wheat
+Cluster 56:
+  Words: coleslaw, lasagna, meatloaf, pasta, polenta, quiche, ravioli, salad
+Cluster 57:
+  Words: artichoke, asparagus, basil, broccoli, cabbage, cauliflower, celeriac, celery, chard, chive, chives, cilantro, cucumber, daikon, dill, eggplant, endive, fennel, garlic, jicama, kale, kohlrabi, melon, onion, oregano, parsley, radish, romaine, rosemary, scallion, shallot, tarragon, thyme, tomatillo, watercress, zucchini
+</code></pre>
+<h2 id="cluster-the-directions-within-each-cluster-and-only-keep-the-relevant-ones">Cluster the directions within each cluster and only keep the relevant ones<a hidden class="anchor" aria-hidden="true" href="#cluster-the-directions-within-each-cluster-and-only-keep-the-relevant-ones">#</a></h2>
+<p>Here is the crux. I want to find the clusters of directions within each cluster. So I calculate the pairwise difference between all words in the cluster, and then cluster the resulting vectors using HDBSCAN again.</p>
+<p>The resulting clusters will have most of the clusters with the same words. For exemple:</p>
+<ul>
+<li>&ldquo;north&rdquo; &gt; &ldquo;city&rdquo;</li>
+<li>&ldquo;north&rdquo; &gt; &ldquo;country&rdquo;</li>
+<li>&ldquo;north&rdquo; &gt; &ldquo;state&rdquo;</li>
+</ul>
+<p>These elements have a similar direction but they are not relevant for our goal. They capture that &ldquo;city&rdquo;, &ldquo;country&rdquo; and &ldquo;state&rdquo; are pretty close to each other in the embedding space, but they don&rsquo;t capture a meaningful direction.</p>
+<p>So within a cluster, I remove a pair when I see a word that is already in the cluster.</p>
+<p>Then I only keep the clusters that have at least 2 pairs so we can do an average direction.</p>
+<p>Then I define two metrics with their thresholds to filter the clusters:</p>
+<ol>
+<li>Intra-cluster coherence: This measures how similar the directions in a cluster are to each other.</li>
+<li>Word-level coherence: This measures if the starting and ending words of the pairs form their own coherent groups.</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.metrics.pairwise <span style="color:#f92672">import</span> cosine_similarity
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> numpy <span style="color:#66d9ef">as</span> np
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> gensim.downloader <span style="color:#66d9ef">as</span> api
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sklearn.metrics.pairwise <span style="color:#f92672">import</span> cosine_similarity
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> itertools <span style="color:#f92672">import</span> combinations
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>INTRA_CLUSTER_THRESHOLD <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.3</span>
+</span></span><span style="display:flex;"><span>WORD_LEVEL_THRESHOLD <span style="color:#f92672">=</span> <span style="color:#ae81ff">0.3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find_relevant_clusters</span>(cluster_id):
+</span></span><span style="display:flex;"><span>    all_words <span style="color:#f92672">=</span> enhanced_clusters[cluster_id]
+</span></span><span style="display:flex;"><span>    all_diff_vectors <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> w1 <span style="color:#f92672">in</span> all_words:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> w2 <span style="color:#f92672">in</span> all_words:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> w1 <span style="color:#f92672">!=</span> w2:
+</span></span><span style="display:flex;"><span>                diff_vector <span style="color:#f92672">=</span> wv[w1] <span style="color:#f92672">-</span> wv[w2]
+</span></span><span style="display:flex;"><span>                all_diff_vectors<span style="color:#f92672">.</span>append(
+</span></span><span style="display:flex;"><span>                    {
+</span></span><span style="display:flex;"><span>                        <span style="color:#e6db74">&#34;word1&#34;</span>: w1,
+</span></span><span style="display:flex;"><span>                        <span style="color:#e6db74">&#34;word2&#34;</span>: w2,
+</span></span><span style="display:flex;"><span>                        <span style="color:#e6db74">&#34;vector&#34;</span>: diff_vector 
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># do dbscan clustering with all_diff_vectors</span>
+</span></span><span style="display:flex;"><span>    hac <span style="color:#f92672">=</span> hdbscan<span style="color:#f92672">.</span>HDBSCAN(min_cluster_size<span style="color:#f92672">=</span><span style="color:#ae81ff">10</span>, metric<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;precomputed&#39;</span>, max_cluster_size<span style="color:#f92672">=</span><span style="color:#ae81ff">50</span>, min_samples<span style="color:#f92672">=</span><span style="color:#ae81ff">2</span>, cluster_selection_method<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;leaf&#34;</span>)
+</span></span><span style="display:flex;"><span>    similarity_matrix <span style="color:#f92672">=</span> cosine_similarity([vec[<span style="color:#e6db74">&#34;vector&#34;</span>] <span style="color:#66d9ef">for</span> vec <span style="color:#f92672">in</span> all_diff_vectors])
+</span></span><span style="display:flex;"><span>    distance_matrix <span style="color:#f92672">=</span> similarity_matrix
+</span></span><span style="display:flex;"><span>    distance_matrix <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> distance_matrix  <span style="color:#75715e"># Convert similarity to distance</span>
+</span></span><span style="display:flex;"><span>    distance_matrix <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>clip(distance_matrix, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>)  <span style="color:#75715e"># Ensure values are in [0, 1]</span>
+</span></span><span style="display:flex;"><span>    distance_matrix <span style="color:#f92672">=</span> distance_matrix<span style="color:#f92672">.</span>astype(np<span style="color:#f92672">.</span>float64)  <span style="color:#75715e"># Convert to float64 for HDBSCAN</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    hac<span style="color:#f92672">.</span>fit(distance_matrix)
+</span></span><span style="display:flex;"><span>    labels <span style="color:#f92672">=</span> hac<span style="color:#f92672">.</span>labels_
+</span></span><span style="display:flex;"><span>    cur_clusters <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> cluster_id <span style="color:#f92672">in</span> set(labels):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cluster_id <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">continue</span>  <span style="color:#75715e"># Skip noise points</span>
+</span></span><span style="display:flex;"><span>        cur_clusters[cluster_id] <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i, label <span style="color:#f92672">in</span> enumerate(labels):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> label <span style="color:#f92672">==</span> cluster_id:
+</span></span><span style="display:flex;"><span>                cur_clusters[cluster_id]<span style="color:#f92672">.</span>append((all_diff_vectors[i][<span style="color:#e6db74">&#34;word1&#34;</span>], all_diff_vectors[i][<span style="color:#e6db74">&#34;word2&#34;</span>]))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># filter unique words</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> cluster_id, data <span style="color:#f92672">in</span> cur_clusters<span style="color:#f92672">.</span>items():
+</span></span><span style="display:flex;"><span>        new_data <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        seen_words <span style="color:#f92672">=</span> set()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> w1, w2 <span style="color:#f92672">in</span> data:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> w1 <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> seen_words <span style="color:#f92672">and</span> w2 <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> seen_words:
+</span></span><span style="display:flex;"><span>                new_data<span style="color:#f92672">.</span>append((w1, w2))
+</span></span><span style="display:flex;"><span>                seen_words<span style="color:#f92672">.</span>add(w1)
+</span></span><span style="display:flex;"><span>                seen_words<span style="color:#f92672">.</span>add(w2)
+</span></span><span style="display:flex;"><span>        cur_clusters[cluster_id] <span style="color:#f92672">=</span> new_data
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># filter clusters with less than 2 pairs</span>
+</span></span><span style="display:flex;"><span>    cur_clusters <span style="color:#f92672">=</span> {k: v <span style="color:#66d9ef">for</span> k, v <span style="color:#f92672">in</span> cur_clusters<span style="color:#f92672">.</span>items() <span style="color:#66d9ef">if</span> len(v) <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">2</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">calculate_intra_cluster_coherence</span>(cluster_pairs, model):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        Calculates how similar the relationship vectors in a cluster are to each other.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        A score close to 1.0 means a very consistent relationship.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        diff_vectors <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> word1, word2 <span style="color:#f92672">in</span> cluster_pairs:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> word1 <span style="color:#f92672">in</span> model <span style="color:#f92672">and</span> word2 <span style="color:#f92672">in</span> model:
+</span></span><span style="display:flex;"><span>                diff_vectors<span style="color:#f92672">.</span>append(model[word2] <span style="color:#f92672">-</span> model[word1])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> len(diff_vectors) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0.0</span> <span style="color:#75715e"># Not enough vectors to compare</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Calculate the centroid (average vector)</span>
+</span></span><span style="display:flex;"><span>        centroid <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(diff_vectors, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)<span style="color:#f92672">.</span>reshape(<span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Calculate cosine similarity of each vector to the centroid</span>
+</span></span><span style="display:flex;"><span>        similarities <span style="color:#f92672">=</span> cosine_similarity(diff_vectors, centroid)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> np<span style="color:#f92672">.</span>mean(similarities)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">calculate_word_level_coherence</span>(cluster_pairs, model):
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        Calculates if the start words and end words form their own coherent groups.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        Returns two scores: (start_word_coherence, end_word_coherence).
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        Scores close to 1.0 are best.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        words_a <span style="color:#f92672">=</span> [pair[<span style="color:#ae81ff">0</span>] <span style="color:#66d9ef">for</span> pair <span style="color:#f92672">in</span> cluster_pairs]
+</span></span><span style="display:flex;"><span>        words_b <span style="color:#f92672">=</span> [pair[<span style="color:#ae81ff">1</span>] <span style="color:#66d9ef">for</span> pair <span style="color:#f92672">in</span> cluster_pairs]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_internal_coherence</span>(words, model):
+</span></span><span style="display:flex;"><span>            vectors <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> word <span style="color:#f92672">in</span> words:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> word <span style="color:#f92672">in</span> model:
+</span></span><span style="display:flex;"><span>                    vectors<span style="color:#f92672">.</span>append(model[word])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> len(vectors) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0.0</span> <span style="color:#75715e"># Not enough words to compare</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e"># Calculate average pairwise cosine similarity</span>
+</span></span><span style="display:flex;"><span>            pair_similarities <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> v1, v2 <span style="color:#f92672">in</span> combinations(vectors, <span style="color:#ae81ff">2</span>):
+</span></span><span style="display:flex;"><span>                pair_similarities<span style="color:#f92672">.</span>append(cosine_similarity(v1<span style="color:#f92672">.</span>reshape(<span style="color:#ae81ff">1</span>,<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), v2<span style="color:#f92672">.</span>reshape(<span style="color:#ae81ff">1</span>,<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>))[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>])
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> pair_similarities:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0.0</span>
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> np<span style="color:#f92672">.</span>mean(pair_similarities)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        coherence_a <span style="color:#f92672">=</span> get_internal_coherence(words_a, model)
+</span></span><span style="display:flex;"><span>        coherence_b <span style="color:#f92672">=</span> get_internal_coherence(words_b, model)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> coherence_a, coherence_b
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    scored_clusters <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> cluster_id, pairs <span style="color:#f92672">in</span> cur_clusters<span style="color:#f92672">.</span>items():
+</span></span><span style="display:flex;"><span>        score1 <span style="color:#f92672">=</span> calculate_intra_cluster_coherence(pairs, wv)
+</span></span><span style="display:flex;"><span>        score2a, score2b <span style="color:#f92672">=</span> calculate_word_level_coherence(pairs, wv)
+</span></span><span style="display:flex;"><span>        scored_clusters[cluster_id] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;pairs&#34;</span>: pairs,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;intra_cluster_coherence&#34;</span>: score1,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;word_level_coherence&#34;</span>: (score2a, score2b)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    relevant_clusters <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> cluster_id, scores <span style="color:#f92672">in</span> scored_clusters<span style="color:#f92672">.</span>items():
+</span></span><span style="display:flex;"><span>        is_relevant <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>            scores[<span style="color:#e6db74">&#34;intra_cluster_coherence&#34;</span>] <span style="color:#f92672">&gt;</span> INTRA_CLUSTER_THRESHOLD <span style="color:#f92672">and</span>
+</span></span><span style="display:flex;"><span>            scores[<span style="color:#e6db74">&#34;word_level_coherence&#34;</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">&gt;</span> WORD_LEVEL_THRESHOLD <span style="color:#f92672">and</span>
+</span></span><span style="display:flex;"><span>            scores[<span style="color:#e6db74">&#34;word_level_coherence&#34;</span>][<span style="color:#ae81ff">1</span>] <span style="color:#f92672">&gt;</span> WORD_LEVEL_THRESHOLD
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> is_relevant:
+</span></span><span style="display:flex;"><span>            relevant_clusters[cluster_id] <span style="color:#f92672">=</span> scores
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> relevant_clusters
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span>all_relevant_clusters <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> tqdm(range(len(enhanced_clusters))):
+</span></span><span style="display:flex;"><span>    out <span style="color:#f92672">=</span> find_relevant_clusters(i)
+</span></span><span style="display:flex;"><span>    all_relevant_clusters<span style="color:#f92672">.</span>append(out)
+</span></span></code></pre></div><pre><code>100%|██████████| 58/58 [00:01&lt;00:00, 35.18it/s]
+</code></pre>
+<h2 id="lets-test-it-out">Lets test it out!<a hidden class="anchor" aria-hidden="true" href="#lets-test-it-out">#</a></h2>
+<p>Let&rsquo;s take the pairs from the cluster where it goes from one gender to another.</p>
+<p>I compute the mean vector of the pairs, and then I add it to a word embedding to find similar words.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># female to male relative</span>
+</span></span><span style="display:flex;"><span>pairs <span style="color:#f92672">=</span>  [
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;aunt&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;brother&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;grandma&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;daughter&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;grandmother&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;nephew&#34;</span>
+</span></span><span style="display:flex;"><span>            ]
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>vecs <span style="color:#f92672">=</span> [wv[pair[<span style="color:#ae81ff">1</span>]] <span style="color:#f92672">-</span> wv[pair[<span style="color:#ae81ff">0</span>]] <span style="color:#66d9ef">for</span> pair <span style="color:#f92672">in</span> pairs]
+</span></span><span style="display:flex;"><span>mean_vec <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(vecs, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>word <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;daughter&#34;</span>
+</span></span><span style="display:flex;"><span>wv<span style="color:#f92672">.</span>similar_by_vector(wv[word] <span style="color:#f92672">+</span> mean_vec)
+</span></span></code></pre></div><pre><code>[('son', 0.8330507278442383),
+ ('daughter', 0.8292535543441772),
+ ('nephew', 0.7205858826637268),
+ ('brother', 0.7185276746749878),
+ ('eldest_son', 0.6810173392295837),
+ ('sons', 0.6789340972900391),
+ ('father', 0.6786629557609558),
+ ('eldest_daughter', 0.6753790974617004),
+ ('younger_brother', 0.6528493762016296),
+ ('daughters', 0.6517931222915649)]
+</code></pre>
+<p>We can see that the most similar embedding to &ldquo;daughter&rdquo; + vec_female_to_male is &ldquo;son&rdquo;, and most of the other results are also related to male family members.</p>
+<p>Let&rsquo;s compare with the similar words to &ldquo;daughter&rdquo; without the vector addition:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>wv<span style="color:#f92672">.</span>similar_by_word(word)
+</span></span></code></pre></div><pre><code>[('mother', 0.8706234097480774),
+ ('niece', 0.8637570738792419),
+ ('granddaughter', 0.8516312837600708),
+ ('son', 0.8468296527862549),
+ ('daughters', 0.8136500716209412),
+ ('eldest_daughter', 0.8052166700363159),
+ ('sister', 0.7814769744873047),
+ ('stepdaughter', 0.7707852721214294),
+ ('wife', 0.7662219405174255),
+ ('grandmother', 0.7483130097389221)]
+</code></pre>
+<p>The results are quite different! We correctly identified a direction vector in the embedding space that captures the relationship female to male!</p>
+<h2 id="attributing-a-meaning-to-the-clusters">Attributing a meaning to the clusters<a hidden class="anchor" aria-hidden="true" href="#attributing-a-meaning-to-the-clusters">#</a></h2>
+<p>Finally, I can use a LLM to interpret the clusters and find their meaning. I will use Google Gemini API to do that.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> dotenv <span style="color:#f92672">import</span> load_dotenv, find_dotenv
+</span></span><span style="display:flex;"><span>load_dotenv(find_dotenv())
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> google <span style="color:#f92672">import</span> genai
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> pydantic <span style="color:#f92672">import</span> BaseModel, Field
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>client <span style="color:#f92672">=</span> genai<span style="color:#f92672">.</span>Client(api_key<span style="color:#f92672">=</span>os<span style="color:#f92672">.</span>getenv(<span style="color:#e6db74">&#34;GEMINI_API_KEY&#34;</span>))
+</span></span><span style="display:flex;"><span>model <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;gemini-2.5-pro&#34;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Response</span>(BaseModel):
+</span></span><span style="display:flex;"><span>    thinking: str <span style="color:#f92672">=</span> Field(<span style="color:#f92672">...</span>, description<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Your reasoning process&#34;</span>)
+</span></span><span style="display:flex;"><span>    final_answer: str <span style="color:#f92672">=</span> Field(<span style="color:#f92672">...</span>, description<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Your final answer to the question&#34;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>prompt_template <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">I&#39;ve calculated the difference between the word embedding of a large corpus and now I have these pairs that have a similar direction. Help me find some meaning to the directions of this cluster.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Your final answer should be a very short description of the cluster direction.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Their may be outliers in the pairs, so focus on the most common direction.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">If you find that the pairs are not related, you can say &#34;no relation&#34; in your final answer.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Cluster directions:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"></span><span style="color:#e6db74">{pairs}</span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;&#34;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">format_prompt</span>(pairs):
+</span></span><span style="display:flex;"><span>    pairs_str <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span><span style="color:#f92672">.</span>join([<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Pair </span><span style="color:#e6db74">{</span>idx<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span><span style="color:#e6db74">}</span><span style="color:#e6db74">: </span><span style="color:#e6db74">{</span>pair[<span style="color:#ae81ff">0</span>]<span style="color:#e6db74">}</span><span style="color:#e6db74"> -&gt; </span><span style="color:#e6db74">{</span>pair[<span style="color:#ae81ff">1</span>]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> <span style="color:#66d9ef">for</span> idx, pair <span style="color:#f92672">in</span> enumerate(pairs)])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> prompt_template<span style="color:#f92672">.</span>format(pairs<span style="color:#f92672">=</span>pairs_str)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_cluster_meaning</span>(pairs):
+</span></span><span style="display:flex;"><span>    prompt <span style="color:#f92672">=</span> format_prompt(pairs)
+</span></span><span style="display:flex;"><span>    response <span style="color:#f92672">=</span> client<span style="color:#f92672">.</span>models<span style="color:#f92672">.</span>generate_content(
+</span></span><span style="display:flex;"><span>        model<span style="color:#f92672">=</span>model,
+</span></span><span style="display:flex;"><span>        contents<span style="color:#f92672">=</span>prompt,
+</span></span><span style="display:flex;"><span>        config <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;response_mime_type&#34;</span>: <span style="color:#e6db74">&#34;application/json&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;response_schema&#34;</span> : Response,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;system_instruction&#34;</span>: <span style="color:#e6db74">&#34;You are a helpful assistant expert in understanding word relationships and clusters. Your task is to analyze the provided pairs of words and provide a concise description of the cluster direction.&#34;</span>,
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> response
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_cluster_meaning_wrapper</span>(cluster):
+</span></span><span style="display:flex;"><span>    pairs <span style="color:#f92672">=</span> cluster[<span style="color:#e6db74">&#34;pairs&#34;</span>]
+</span></span><span style="display:flex;"><span>    response <span style="color:#f92672">=</span> get_cluster_meaning(pairs)
+</span></span><span style="display:flex;"><span>    cluster[<span style="color:#e6db74">&#34;meaning&#34;</span>] <span style="color:#f92672">=</span> response<span style="color:#f92672">.</span>parsed<span style="color:#f92672">.</span>final_answer
+</span></span><span style="display:flex;"><span>    cluster[<span style="color:#e6db74">&#34;thinking&#34;</span>] <span style="color:#f92672">=</span> response<span style="color:#f92672">.</span>parsed<span style="color:#f92672">.</span>thinking
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cluster
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> multiprocessing <span style="color:#f92672">import</span> Pool
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> tqdm <span style="color:#f92672">import</span> tqdm
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> Pool(<span style="color:#ae81ff">20</span>) <span style="color:#66d9ef">as</span> p:
+</span></span><span style="display:flex;"><span>    all_relevant_clusters_with_meaning <span style="color:#f92672">=</span> list(tqdm(p<span style="color:#f92672">.</span>imap(get_cluster_meaning_wrapper, all_relevant_clusters), total<span style="color:#f92672">=</span>len(all_relevant_clusters)))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">with</span> open(<span style="color:#e6db74">&#34;all_relevant_clusters_with_meaning.json&#34;</span>, <span style="color:#e6db74">&#34;w&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>    json<span style="color:#f92672">.</span>dump(all_relevant_clusters_with_meaning, f, indent<span style="color:#f92672">=</span><span style="color:#ae81ff">4</span>)
+</span></span></code></pre></div><pre><code>100%|██████████| 90/90 [01:26&lt;00:00,  1.04it/s]
+</code></pre>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">for</span> cluster <span style="color:#f92672">in</span> all_relevant_clusters_with_meaning:
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>cluster[<span style="color:#e6db74">&#39;meaning&#39;</span>]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>)
+</span></span></code></pre></div><pre><code>Weather phenomenon to natural disaster
+From a specific storm to a related weather phenomenon
+From a negative female archetype to a male archetype
+Hand tool to firearm
+Weapon to hand tool
+General transport concepts to specific rail elements
+From a specific mode of transport to its general purpose.
+From private to commercial/public transport
+From larger to smaller vehicles
+From specific processes to broader concepts of growth
+From process to expansion
+From concept to execution
+Shift between grammatical concepts
+From parts of speech to punctuation.
+Warfare and political violence
+From specific military actions to broader concepts of state expansion and war.
+From one medical profession to another
+From therapeutic or psychological professions to medical professions
+From metals and minerals to fossil fuels
+Energy resource to mineral resource
+From a geometric shape or component to a physical object or tool.
+Object to its geometry or associated tool
+From central or large body parts to peripheral parts, extremities, or joints.
+Lower to upper body parts
+Jewelry to Decorative Object
+General object to type of jewelry
+Geographical locations and directions
+From one geographic direction to another
+Storage furniture to seating furniture
+From seating or sleeping furniture to storage furniture
+From kinship term to demographic term
+Person descriptor to family role
+Female to male relative
+To an older, female relative
+Romantic partner to family member
+Core emotion to a strong reaction
+From intense emotions to sadness
+From emotion to sexual orientation
+From sexual orientation to strong emotion
+From motivational state to emotional state
+From emotion to volition
+High-level system/application to low-level implementation/programming component.
+Low-level programming concepts to high-level applications and hardware.
+From quantitative measures to descriptions of change
+From a type of change to its measurement
+Ordinal concept to time period
+From a unit of time to an ordinal position
+From a general business system to a specific functional part
+From a business entity to its larger operational context
+From religious building to secular room
+From secular space to sacred/religious space
+From a type of building to a part of that building
+From a part of a building to a whole building
+From a proposition to its logical basis or justification.
+Academic to athletic
+From sports to academia
+General sports terms to specific sports or athletes
+From verbs or states to indefinite pronouns
+General pronoun to a common associated action or state
+From kitchen appliances to other major home appliances
+Major household appliances
+no relation
+Female/neutral to male equine
+From a support/administrative role to a writing/media role
+From a writing/journalism profession to a staff/support role
+Legal professional to support staff
+From general support/administrative roles to legal professionals.
+From leader to subordinate
+From a subordinate or managerial role to a leadership or executive role
+From a large body of water to an adjacent or subsidiary feature.
+From a smaller water feature to a larger body of water or basin
+From a watercraft to a docking structure
+From a water-related structure to a specific watercraft
+Small watercraft to large watercraft
+Primary color to secondary color
+Color relationships
+From one type of alcoholic beverage to another
+From one type of alcoholic beverage to another
+From one type of seafood to another
+General insect to a specific pest or stinging insect
+Specific insect to general insect
+From wild land mammals to aquatic or exotic animals
+General animal to North American mammal
+From one type of flower to another
+Specific flower to another flower
+Broadleaf tree to conifer tree
+From American/European dishes to Italian dishes
+Italian food to non-Italian food
+Vegetable to herb
+herbs to vegetables
+</code></pre>
+<h2 id="lets-test-a-few-more-clusters">Let&rsquo;s test a few more clusters<a hidden class="anchor" aria-hidden="true" href="#lets-test-a-few-more-clusters">#</a></h2>
+<h3 id="from-americaneuropean-dishes-to-italian-dishes">From American/European dishes to Italian dishes<a hidden class="anchor" aria-hidden="true" href="#from-americaneuropean-dishes-to-italian-dishes">#</a></h3>
+<p>I test on the word &ldquo;cheese&rdquo; to see if it finds Italian cheeses.</p>
+<p>Surprisingly, it finds at the top &ldquo;pasta&rdquo; meaning that the direction is more toward pasta dishes than italian dishes. But it still finds more Italian-related cheeses with the direction vector while the similar_by_word method mostly returns french cheeses.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>pairs <span style="color:#f92672">=</span>  [
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;coleslaw&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;lasagna&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;meatloaf&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;pasta&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;quiche&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;polenta&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;salad&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;ravioli&#34;</span>
+</span></span><span style="display:flex;"><span>            ]
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>vecs <span style="color:#f92672">=</span> [wv[pair[<span style="color:#ae81ff">1</span>]] <span style="color:#f92672">-</span> wv[pair[<span style="color:#ae81ff">0</span>]] <span style="color:#66d9ef">for</span> pair <span style="color:#f92672">in</span> pairs]
+</span></span><span style="display:flex;"><span>mean_vec <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(vecs, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>word <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;cheese&#34;</span>
+</span></span><span style="display:flex;"><span>wv<span style="color:#f92672">.</span>similar_by_vector(wv[word] <span style="color:#f92672">+</span> mean_vec)
+</span></span></code></pre></div><pre><code>[('cheese', 0.8760064840316772),
+ ('cheeses', 0.6886467933654785),
+ ('pasta', 0.6770588159561157),
+ ('mozzarella', 0.6748825907707214),
+ ('ricotta', 0.6693215370178223),
+ ('cheddar', 0.6451700329780579),
+ ('goat_cheese', 0.6403456330299377),
+ ('mozzarella_cheese', 0.6397900581359863),
+ ('Cheese', 0.6308974623680115),
+ ('Mozzarella_cheese', 0.6121116280555725)]
+</code></pre>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>wv<span style="color:#f92672">.</span>similar_by_word(word)
+</span></span></code></pre></div><pre><code>[('cheeses', 0.7788999676704407),
+ ('cheddar', 0.7627597451210022),
+ ('goat_cheese', 0.7297402024269104),
+ ('Cheese', 0.7286962270736694),
+ ('cheddar_cheese', 0.725513756275177),
+ ('Cheddar_cheese', 0.6943708658218384),
+ ('mozzarella', 0.6805710792541504),
+ ('cheddar_cheeses', 0.6694672107696533),
+ ('Camembert', 0.6623162031173706),
+ ('gruyere', 0.6615148186683655)]
+</code></pre>
+<h3 id="weather-phenomenon-to-natural-disaster">Weather phenomenon to natural disaster<a hidden class="anchor" aria-hidden="true" href="#weather-phenomenon-to-natural-disaster">#</a></h3>
+<p>Here we test the word &ldquo;wind&rdquo; to see if it finds a natural disaster related to wind.</p>
+<p>It correctly finds &ldquo;cyclone&rdquo;, &ldquo;hurricane&rdquo;, &ldquo;typhoon&rdquo; and &ldquo;storm&rdquo; as the most similar words, which are all related to wind phenomena.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>pairs <span style="color:#f92672">=</span>  [
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;blizzard&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;cyclone&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;rain&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;earthquake&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;rainstorm&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;hurricane&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;rainy&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;snowstorm&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;sleet&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;storm&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;snow&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;thunderstorm&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;weather&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;tsunami&#34;</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            [
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;winter&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;typhoon&#34;</span>
+</span></span><span style="display:flex;"><span>            ]
+</span></span><span style="display:flex;"><span>        ]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>vecs <span style="color:#f92672">=</span> [wv[pair[<span style="color:#ae81ff">1</span>]] <span style="color:#f92672">-</span> wv[pair[<span style="color:#ae81ff">0</span>]] <span style="color:#66d9ef">for</span> pair <span style="color:#f92672">in</span> pairs]
+</span></span><span style="display:flex;"><span>mean_vec <span style="color:#f92672">=</span> np<span style="color:#f92672">.</span>mean(vecs, axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>word <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;wind&#34;</span>
+</span></span><span style="display:flex;"><span>wv<span style="color:#f92672">.</span>similar_by_vector(wv[word] <span style="color:#f92672">+</span> mean_vec)
+</span></span></code></pre></div><pre><code>[('wind', 0.7509654760360718),
+ ('cyclone', 0.6039589047431946),
+ ('typhoon', 0.6032367944717407),
+ ('winds', 0.5877481698989868),
+ ('hurricane', 0.5860252380371094),
+ ('storm', 0.5791043043136597),
+ ('Wind', 0.5333985686302185),
+ ('storms', 0.5293585062026978),
+ ('tsunami', 0.529338538646698),
+ ('Hurricane_Ike', 0.5260397791862488)]
+</code></pre>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>wv<span style="color:#f92672">.</span>similar_by_word(word)
+</span></span></code></pre></div><pre><code>[('winds', 0.7204776406288147),
+ ('Wind', 0.6752252578735352),
+ ('paupers_graves_Xicotencatl', 0.6299487948417664),
+ ('gusts', 0.5962637066841125),
+ ('Winds', 0.594899594783783),
+ ('breeze', 0.592047929763794),
+ ('northwesterly_wind', 0.5902013182640076),
+ ('wind_blows', 0.5894188284873962),
+ ('breezes', 0.5883914232254028),
+ ('southwesterly_wind', 0.5843492150306702)]
+</code></pre>
+<h1 id="final-thoughts">Final thoughts<a hidden class="anchor" aria-hidden="true" href="#final-thoughts">#</a></h1>
+<ul>
+<li>
+<p>In the tests, often the most similar word is the original word itself, I think this is because when I do the clustering I look at the cosine distance. It tells the direction of the vector, but not its magnitude. That&rsquo;s why by adding the mean vector to the original word, I go towards the direction of the cluster, but I don&rsquo;t know how far to go.</p>
+</li>
+<li>
+<p>Word2Vec is a pretty old model (2013), and I could try with a more recent model like GloVe. Maybe Bert or other transformer-based models would also work.</p>
+</li>
+<li>
+<p>I could try to find a more memory-efficient way to do the pairwise difference and clustering between all words embeddings</p>
+</li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="http://localhost:1313/">Philippe Saade</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

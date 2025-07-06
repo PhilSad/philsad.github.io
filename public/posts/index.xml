@@ -1,20 +1,62 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
-    <title>Posts on My New Hugo Site</title>
-    <link>https:/posts/</link>
-    <description>Recent content in Posts on My New Hugo Site</description>
+    <title>Posts on Philippe Saade</title>
+    <link>http://localhost:1313/posts/</link>
+    <description>Recent content in Posts on Philippe Saade</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 05 Nov 2023 01:05:29 +0100</lastBuildDate><atom:link href="https:/posts/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 06 Jul 2025 01:05:29 +0100</lastBuildDate><atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Find Meaningful Directions in an Embedding Space</title>
+      <link>http://localhost:1313/posts/find_direction_in_embeddings/</link>
+      <pubDate>Sun, 06 Jul 2025 01:05:29 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/find_direction_in_embeddings/</guid>
+      <description>&lt;h1 id=&#34;motivation&#34;&gt;Motivation&lt;/h1&gt;
+&lt;p&gt;Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous &amp;ldquo;king&amp;rdquo; - &amp;ldquo;man&amp;rdquo; + &amp;ldquo;woman&amp;rdquo; = &amp;ldquo;queen&amp;rdquo; analogy, but how do we uncover similar relationships in a more systematic unsupervised way?&lt;/p&gt;
+&lt;p&gt;This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques.&lt;/p&gt;
+&lt;h1 id=&#34;high-level-overview&#34;&gt;High-level overview&lt;/h1&gt;
+&lt;h2 id=&#34;the-embedding-model&#34;&gt;The embedding model&lt;/h2&gt;
+&lt;p&gt;I need a model that can provide high-quality word embeddings. Being only at the word level, I don&amp;rsquo;t need a model like Bert that provides contextual embeddings. Instead, I can use a pre-trained word embedding model that captures semantic relationships between words.&lt;/p&gt;</description>
+    </item>
+    
     <item>
       <title>My First Post</title>
-      <link>https:/posts/my-first-post/</link>
+      <link>http://localhost:1313/posts/my-first-post/</link>
       <pubDate>Sun, 05 Nov 2023 01:05:29 +0100</pubDate>
       
-      <guid>https:/posts/my-first-post/</guid>
-      <description>What can you find on this blog Here I&amp;rsquo;ll share my dev projects and guides about AI, mainly Stable Diffusion &amp;amp; LLM
-This is a default template for now but I&amp;rsquo;ll update it to get more features (traduction, gallery, &amp;hellip;)</description>
+      <guid>http://localhost:1313/posts/my-first-post/</guid>
+      <description>&lt;h2 id=&#34;what-can-you-find-on-this-blog&#34;&gt;What can you find on this blog&lt;/h2&gt;
+&lt;p&gt;Here I&amp;rsquo;ll share my dev projects and guides about AI, mainly Stable Diffusion &amp;amp; LLM&lt;/p&gt;
+&lt;p&gt;This is a default template for now but I&amp;rsquo;ll update it to get more features (traduction, gallery, &amp;hellip;)&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Insert yourself in your favorite anime with IP Adapter Face</title>
+      <link>http://localhost:1313/posts/ipadapter-face-style/</link>
+      <pubDate>Sun, 05 Nov 2023 01:04:58 +0100</pubDate>
+      
+      <guid>http://localhost:1313/posts/ipadapter-face-style/</guid>
+      <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;IP Adapter Face for Stable DIffusion XL was recently released&lt;/li&gt;
+&lt;li&gt;I thought it would be like dreambooth without training
+&lt;ul&gt;
+&lt;li&gt;Sad that it&amp;rsquo;s not great for photorealism&lt;/li&gt;
+&lt;li&gt;Happy that it&amp;rsquo;s great for everything else!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;In this article I&amp;rsquo;ll explain
+&lt;ul&gt;
+&lt;li&gt;a high level explanation of how IP Adapter works&lt;/li&gt;
+&lt;li&gt;how you can generate beautiful pics of yourself in different styles&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;%% Result table %%&lt;/p&gt;
+&lt;h2 id=&#34;how-ip-adapter-works&#34;&gt;How IP Adapter works&lt;/h2&gt;
+&lt;p&gt;%% Pic of uncanny result of IP adapter realist %%&lt;/p&gt;</description>
     </item>
     
   </channel>
