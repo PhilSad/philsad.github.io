@@ -1,5 +1,5 @@
 +++
-title = 'Find Meaningful Directions in an Embedding Space'
+title = 'Finding Meaningful Directions in an Embedding Space'
 date = 2025-07-06T01:05:29+01:00
 draft = false
 +++
