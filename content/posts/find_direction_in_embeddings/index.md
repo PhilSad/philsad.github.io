@@ -9,7 +9,7 @@ Word embeddings are the backbone of many NLP applications, but they often lack i
 
 This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques. 
 
-You can find all the directions I found [in the results json](https://github.com/PhilSad/latent-directions/blob/main/all_relevant_clusters_with_meaning.json).
+You can find all the directions I found and their interpretations [in the results json](https://github.com/PhilSad/latent-directions/blob/main/all_relevant_clusters_with_meaning.json).
 
 # High-level overview
 
