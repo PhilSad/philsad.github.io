@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Infinite Canvas: An Infinite Zoom Collaborative Canvas for Image Generation | Philippe Saade</title>
+<meta name="keywords" content="">
+<meta name="description" content="In the summer of 2022, diffusion models were beginning to become more and more capable. DALLE 2 was just released by OpenAI and a new open source competitor was just announced and seemed to be very promising : StableDiffusion.
+Excited to try this new technology, some of us from LatentMinds decided to work on a project to facilitate the use of this technology and make it available to a broader audience.
+This is how the InfiniteCanvas project started. A multi user, multi resolution shared canvas for image generation with infinite zoom and no borders.
+In the following weeks, we, Philippe and Ruben spent long nights and questionable decisions to make this idea a reality.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/infinite_canvas/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.f9f91002fe82ae229ce4b8ec18eafc3a9d22a76ba6da1975bd754e6e4f35999e.css" integrity="sha256-&#43;fkQAv6CriKc5LjsGOr8Op0ip2um2hl1vXVObk81mZ4=" rel="preload stylesheet" as="style">
+<script defer crossorigin="anonymous" src="/assets/js/highlight.f413e19d0714851f6474e7ee9632408e58ac146fbdbe62747134bea2fa3415e0.js" integrity="sha256-9BPhnQcUhR9kdOfuljJAjlisFG&#43;9vmJ0cTS&#43;ovo0FeA="
+    onload="hljs.initHighlightingOnLoad();"></script>
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/infinite_canvas/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --hljs-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Philippe Saade (Alt + H)">Philippe Saade</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+                <ul class="lang-switch"><li>|</li>
+                </ul>
+            </div>
+        </div>
+        <ul id="menu">
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title">
+      Infinite Canvas: An Infinite Zoom Collaborative Canvas for Image Generation
+    </h1>
+    <div class="post-meta"><span title='2025-06-05 01:04:58 +0100 +0100'>June 5, 2025</span>
+
+</div>
+  </header> 
+  <div class="post-content"><p>In the summer of 2022, diffusion models were beginning to become more and more capable. <a href="https://openai.com/dall-e-2">DALLE 2</a> was just released by <a href="https://openai.com">OpenAI</a> and a new open source competitor was just announced and seemed to be very promising : <strong><a href="https://stability.ai/stable-diffusion">StableDiffusion</a></strong>.</p>
+<p>Excited to try this new technology, some of us from <a href="https://latentminds.co">LatentMinds</a> decided to work on a project to facilitate the use of this technology and make it available to a broader audience.</p>
+<p>This is how the <a href="https://canvas.koll.ai">InfiniteCanvas</a> project started. A multi user, multi resolution shared canvas for image generation with infinite zoom and no borders.
+In the following weeks, we, <a href="https://www.linkedin.com/in/philippe-saad%C3%A9-26972b149/">Philippe</a> and <a href="https://rubengres.com">Ruben</a> spent long nights and questionable decisions to make this idea a reality.</p>
+<p><img loading="lazy" src="./images/1.ui.png" alt="xxlarge"  />
+</p>
+<p>Today the project is no longer active, but we figured we&rsquo;ll redact a short write-up to document our learnings and attest to the innovative approaches we had to invent at a time where diffusion models were only in their infancy.</p>
+<h2 id="building-on-a-budget">Building on a Budget<a hidden class="anchor" aria-hidden="true" href="#building-on-a-budget">#</a></h2>
+<p>We had no funding to work on this project and at the time we just graduated and money was particularly tight. We had to make compromises and be clever in a lot of ways to keep costs low while avoiding to cut too many corners. Some of the design and infrastructure choices may now seem unorthodox, but they were mostly made to accommodate our low budget.</p>
+<h2 id="how-the-canvas-worked">How the canvas worked<a hidden class="anchor" aria-hidden="true" href="#how-the-canvas-worked">#</a></h2>
+<p>The client is written in <a href="https://react.dev">React</a> with a lot of custom javascript to handle the canvas elements The website worked on mobile and desktop and we always made sure to keep compatibility for all devices.</p>
+<h3 id="stretching-out-in-all-three-directions">Stretching out in all three directions<a hidden class="anchor" aria-hidden="true" href="#stretching-out-in-all-three-directions">#</a></h3>
+<p>The leading idea behind the project was to have an infinite canvas that could stretch forever in all axes. X and Y axis are straightforward, even if not really infinite as we are limited by the maximum values of a float, but it&rsquo;s pretty big nonetheless.</p>
+<p>Z axis was a bit harder to implement, we had to figure out a way to make an infinite zoom without degrading quality too much and keeping performances high.</p>
+<p>The first step was pretty simple, inspired by spatial loading in video games, we only loaded the images that were in view of the camera. This is an improvement, but since we can zoom in indefinitely, images can be very small on the user screens but still take a long time to load. The fix was simple, if an image isn&rsquo;t occupying a lot of space on screen, we replaced it with a coloured rectangle of the average image pixel value. Finally we just had to save images in different levels of details and load them according to their scale and the canvas is done!</p>
+<h2 id="sharing-the-canvas-with-others">Sharing the canvas with others<a hidden class="anchor" aria-hidden="true" href="#sharing-the-canvas-with-others">#</a></h2>
+<p>The canvas was shared for all users, this meant that the first time you logged in, you could see all of the generations that were made by others and add your own ideas to the canvas.</p>
+<p><img loading="lazy" src="./images/2_ui_grid.png" alt="xxlarge"  />
+</p>
+<p>We synced all users using web sockets broadcasting every new image that was generated so everyone would see the piece update in real time. If you wanted to start fresh we also had a room system where you could have a specific theme or just play with your friends.</p>
+<h2 id="running-a-backend-service-on-a-budget">Running a backend service on a budget<a hidden class="anchor" aria-hidden="true" href="#running-a-backend-service-on-a-budget">#</a></h2>
+<h3 id="choosing-a-cloud-provider">Choosing a Cloud Provider<a hidden class="anchor" aria-hidden="true" href="#choosing-a-cloud-provider">#</a></h3>
+<p>We went for <a href="https://cloud.google.com">Google Cloud</a> for our cloud provider as it came with 300$ in free credits for new accounts and a friendly user interface. Again, no budget.</p>
+<p>We made two environments for the development and production of the backend and the client. These two environments shared a common database, not really best practices but at least we didn&rsquo;t double our database costs. Google Cloud services made it easy to mirror our <a href="https://github.com">GitHub</a> branches and deploy them to the correct environment with the right configuration.</p>
+<h3 id="avoiding-gpu-cost-at-all-cost">Avoiding GPU cost at all cost<a hidden class="anchor" aria-hidden="true" href="#avoiding-gpu-cost-at-all-cost">#</a></h3>
+<p>To run the image generation models, we needed GPU compute and even if the image generation model only took 3GB of VRAM, GPUs aren&rsquo;t cheap.</p>
+<p>To dodge this cost, we came up with a simple plan: freeloading <a href="https://colab.research.google.com">Google Colab</a>.</p>
+<p>The method was simple, every user had to run a small jupyter notebook on any machine with a GPU. To make this simpler, we made a Google Colab as it is free for everyone with a Google account and really simple to set up. Running the script will give you an url to <strong>InfiniteCanvas</strong> linked to your device for the generation. And just like that, no GPU cost!</p>
+<p>This worked for a while but Google Colab decided to ban AI image generation UIs in September 2023, one year after the project launched. Still, if you were motivated enough you could still download the notebook and run it on your machine.</p>
+<h3 id="storing-images-and-coordinates">Storing images and coordinates<a hidden class="anchor" aria-hidden="true" href="#storing-images-and-coordinates">#</a></h3>
+<p>We needed to store all the user generated images as well as their coordinates in the canvas.
+The images (~10 GB) were stored in a <a href="https://cloud.google.com/storage">Cloud Storage</a> bucket while their location (~100 KB) were in a <a href="https://cloud.google.com/sql">Cloud SQL</a> database. Despite the coordinates dataset being 100,000 times smaller than the images, their database cost us 100 times more in the long run! If we were to do it again we would use a cheaper service like <a href="https://firebase.google.com/products/firestore">Firestore</a> that is only paid on use…</p>
+<h3 id="image-generation-and-implementation-details">Image generation and implementation details<a hidden class="anchor" aria-hidden="true" href="#image-generation-and-implementation-details">#</a></h3>
+<p>The first model that we used was the original Lattent Diffusion Model. We used the provided inference script that we hacked to add the inpainting support. Then with the release of Stable Diffusion 1.1 to 1.5 we could rely on the easier to use <a href="https://huggingface.co">Hugging Face&rsquo;s</a> Diffuser pipelines and scrap a lot of our custom code. As time went on and models improved the generations were better and better.</p>
+<p>InfiniteCanvas had three modes of generations: New image, outpainting and image to image.</p>
+<p><img loading="lazy" src="./images/3_ui_tools.png" alt="large"  />
+</p>
+<p>The basic generation and image-to-image were pretty straight forward to implement with existing tools but for the outpainting we had to make our own method since this technique was so early. Nowadays specialized inpainting models make it really straightforward but at the time we had to do everything manually.</p>
+<p>Here is an example using a picture of a dog on a bench:</p>
+<ol>
+<li>We fill the space around the image with RGB perlin noise.</li>
+<li>We create a mask with noisy borders to hide the seam as much as possible</li>
+<li>We apply the model using the mask to generate the missing part of the image.</li>
+</ol>
+<p><img loading="lazy" src="./images/4_mask_input.png" alt="xxlarge"  />
+
+<img loading="lazy" src="./images/5_mask_output.png" alt="xxlarge"  />
+</p>
+<p>In our application, one more step is needed to keep the infinite zoom possible. We cut out the masked region of the image so their original full size can be seen under it and maintain the infinite zoom. The final canvas resulted in a patchwork of half cut images overlayed on each other.</p>
+<p>The seams are still quite noticeable, but for a very early solution this wasn&rsquo;t so bad.</p>
+<h2 id="sharing-the-website-and-aftermath">Sharing the website and aftermath<a hidden class="anchor" aria-hidden="true" href="#sharing-the-website-and-aftermath">#</a></h2>
+<p>In November we made a Reddit post to advertise our project. This is the only time we talked about it and still got 57 unique users with 1040 generated pictures in a few days.
+We had a few surprises with our small user base, only one user griefed by covering smaller images in the default room, while people continued existing works to form a collaborative collage.</p>
+<p>In the end, even if the project was short lived it still allowed us to learn a lot of different technologies, platforms and low level AI tinkering. Though the project is now defunct, you can still watch it in action in <a href="https://www.youtube.com/watch?v=Rx_LL-SMYyw&amp;list=PL7CV00e3X_pVhvbY91KX21bv3gSnBTzHN">this YouTube playlist</a>.</p>
+<p>We still believe there is a strong potential in InfiniteCanvas and might go back to it to make a more modern (and cost effective….) version in the future. Stay tuned!</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="http://localhost:1313/">Philippe Saade</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

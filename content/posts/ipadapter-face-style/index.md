@@ -1,7 +1,7 @@
 +++
 title = 'Insert yourself in your favorite anime with IP Adapter Face'
 date = 2023-11-05T01:04:58+01:00
-draft = false
+draft = true
 +++
 
 ## Introduction

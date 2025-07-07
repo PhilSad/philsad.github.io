@@ -2,61 +2,32 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Philippe Saade</title>
-    <link>http://localhost/</link>
+    <link>http://localhost:1313/</link>
     <description>Recent content on Philippe Saade</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 06 Jul 2025 01:05:29 +0100</lastBuildDate><atom:link href="http://localhost/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 06 Jul 2025 01:05:29 +0100</lastBuildDate><atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
-      <title>Find Meaningful Directions in an Embedding Space</title>
-      <link>http://localhost/posts/find_direction_in_embeddings/</link>
+      <title>Finding Meaningful Directions in an Embedding Space</title>
+      <link>http://localhost:1313/posts/find_direction_in_embeddings/</link>
       <pubDate>Sun, 06 Jul 2025 01:05:29 +0100</pubDate>
       
-      <guid>http://localhost/posts/find_direction_in_embeddings/</guid>
-      <description>&lt;h1 id=&#34;motivation&#34;&gt;Motivation&lt;/h1&gt;
-&lt;p&gt;Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous &amp;ldquo;king&amp;rdquo; - &amp;ldquo;man&amp;rdquo; + &amp;ldquo;woman&amp;rdquo; = &amp;ldquo;queen&amp;rdquo; analogy, but how do we uncover similar relationships in a more systematic unsupervised way?&lt;/p&gt;
+      <guid>http://localhost:1313/posts/find_direction_in_embeddings/</guid>
+      <description>&lt;p&gt;Word embeddings are the backbone of many NLP applications, but they often lack interpretability. We all know the famous &lt;code&gt;&amp;quot;king&amp;quot; - &amp;quot;man&amp;quot; + &amp;quot;woman&amp;quot; = &amp;quot;queen&amp;quot;&lt;/code&gt; analogy, but how can we uncover similar relationships in a more systematic, unsupervised way?&lt;/p&gt;
 &lt;p&gt;This notebook explores how to find and interpret intrinsic directions in the word embedding space using clustering techniques.&lt;/p&gt;
-&lt;h1 id=&#34;high-level-overview&#34;&gt;High-level overview&lt;/h1&gt;
-&lt;h2 id=&#34;the-embedding-model&#34;&gt;The embedding model&lt;/h2&gt;
-&lt;p&gt;I need a model that can provide high-quality word embeddings. Being only at the word level, I don&amp;rsquo;t need a model like Bert that provides contextual embeddings. Instead, I can use a pre-trained word embedding model that captures semantic relationships between words.&lt;/p&gt;</description>
+&lt;p&gt;You can find all the directions I found and their interpretations &lt;a href=&#34;https://github.com/PhilSad/latent-directions/blob/main/all_relevant_clusters_with_meaning.json&#34;&gt;in the results json&lt;/a&gt;.&lt;/p&gt;</description>
     </item>
     
     <item>
-      <title>My First Post</title>
-      <link>http://localhost/posts/my-first-post/</link>
-      <pubDate>Sun, 05 Nov 2023 01:05:29 +0100</pubDate>
+      <title>Infinite Canvas: An Infinite Zoom Collaborative Canvas for Image Generation</title>
+      <link>http://localhost:1313/posts/infinite_canvas/</link>
+      <pubDate>Thu, 05 Jun 2025 01:04:58 +0100</pubDate>
       
-      <guid>http://localhost/posts/my-first-post/</guid>
-      <description>&lt;h2 id=&#34;what-can-you-find-on-this-blog&#34;&gt;What can you find on this blog&lt;/h2&gt;
-&lt;p&gt;Here I&amp;rsquo;ll share my dev projects and guides about AI, mainly Stable Diffusion &amp;amp; LLM&lt;/p&gt;
-&lt;p&gt;This is a default template for now but I&amp;rsquo;ll update it to get more features (traduction, gallery, &amp;hellip;)&lt;/p&gt;</description>
-    </item>
-    
-    <item>
-      <title>Insert yourself in your favorite anime with IP Adapter Face</title>
-      <link>http://localhost/posts/ipadapter-face-style/</link>
-      <pubDate>Sun, 05 Nov 2023 01:04:58 +0100</pubDate>
-      
-      <guid>http://localhost/posts/ipadapter-face-style/</guid>
-      <description>&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-&lt;ul&gt;
-&lt;li&gt;IP Adapter Face for Stable DIffusion XL was recently released&lt;/li&gt;
-&lt;li&gt;I thought it would be like dreambooth without training
-&lt;ul&gt;
-&lt;li&gt;Sad that it&amp;rsquo;s not great for photorealism&lt;/li&gt;
-&lt;li&gt;Happy that it&amp;rsquo;s great for everything else!&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;In this article I&amp;rsquo;ll explain
-&lt;ul&gt;
-&lt;li&gt;a high level explanation of how IP Adapter works&lt;/li&gt;
-&lt;li&gt;how you can generate beautiful pics of yourself in different styles&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;%% Result table %%&lt;/p&gt;
-&lt;h2 id=&#34;how-ip-adapter-works&#34;&gt;How IP Adapter works&lt;/h2&gt;
-&lt;p&gt;%% Pic of uncanny result of IP adapter realist %%&lt;/p&gt;</description>
+      <guid>http://localhost:1313/posts/infinite_canvas/</guid>
+      <description>&lt;p&gt;In the summer of 2022, diffusion models were beginning to become more and more capable. &lt;a href=&#34;https://openai.com/dall-e-2&#34;&gt;DALLE 2&lt;/a&gt; was just released by &lt;a href=&#34;https://openai.com&#34;&gt;OpenAI&lt;/a&gt; and a new open source competitor was just announced and seemed to be very promising : &lt;strong&gt;&lt;a href=&#34;https://stability.ai/stable-diffusion&#34;&gt;StableDiffusion&lt;/a&gt;&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Excited to try this new technology, some of us from &lt;a href=&#34;https://latentminds.co&#34;&gt;LatentMinds&lt;/a&gt; decided to work on a project to facilitate the use of this technology and make it available to a broader audience.&lt;/p&gt;
+&lt;p&gt;This is how the &lt;a href=&#34;https://canvas.koll.ai&#34;&gt;InfiniteCanvas&lt;/a&gt; project started. A multi user, multi resolution shared canvas for image generation with infinite zoom and no borders.
+In the following weeks, we, &lt;a href=&#34;https://www.linkedin.com/in/philippe-saad%C3%A9-26972b149/&#34;&gt;Philippe&lt;/a&gt; and &lt;a href=&#34;https://rubengres.com&#34;&gt;Ruben&lt;/a&gt; spent long nights and questionable decisions to make this idea a reality.&lt;/p&gt;</description>
     </item>
     
   </channel>
