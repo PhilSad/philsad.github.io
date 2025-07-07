@@ -39,6 +39,8 @@ I initially tried to calculate the pairwise difference between all words embeddi
 
 Maybe I could have searched for a more memory-efficient clustering algorithm, but I had another idea that worked much better.
 
+Also I tried BERT embeddings but the `"king" - "man" + "woman" = "queen"` case didn't work at all. BERT embeddings might be on a higher level of abstraction rendering simple arithmetic operations ineffective. The embeddings are context-dependent, and the relationships between words are not as straightforward as in Word2Vec.
+
 ### What did work
 Instead, I first clustered the words into similar groups, and then performed another clustering  on the pairwise differences within each group. This approach was much more memory-efficient and allowed me to find meaningful directions.
 
@@ -806,6 +808,6 @@ wv.similar_by_word(word)
 
 * In the tests, often the most similar word is the original word itself, I think this is because when I performed the clustering, I looked at the cosine distance. It tells the direction of the vector, but not its magnitude. Therefore, when adding the mean vector to the original word, I move in the direction of the cluster, but the magnitude of that move isn't controlled.
 
-* Word2Vec is a relatively old model (2013), and it would be interesting to try this with a more recent model like GloVe. Maybe BERT or other transformer-based models would also work.
+* Word2Vec is a relatively old model (2013), and it would be interesting to try this with a more recent model like GloVe. Maybe BERT or other transformer-based models would also work but the clusters would be more complex and harder to interpret.
 
 * I could explore more memory-efficient methods for calculating and clustering the pairwise differences across the entire vocabulary.
